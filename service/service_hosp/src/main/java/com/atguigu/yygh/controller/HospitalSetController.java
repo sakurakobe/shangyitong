@@ -8,8 +8,10 @@ import com.atguigu.yygh.vo.hosp.HospitalSetQueryVo;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.api.R;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.sun.org.apache.regexp.internal.RE;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +23,7 @@ import java.util.Random;
 @Api(tags = "医院设置管理")
 @RestController
 @RequestMapping("/admin/hosp/hospitalSet" )
+@CrossOrigin
 public class HospitalSetController {
 
     @Autowired
@@ -48,7 +51,7 @@ public class HospitalSetController {
 
     //条件查询带分页
     @ApiOperation(value = "条件查询")
-    @GetMapping("findPage/{cuurent}/{limit}")
+    @PostMapping("findPage/{current}/{limit}")
     public Result findPage(@PathVariable long current,
                            @PathVariable long limit,
                            @RequestBody(required = false) HospitalSetQueryVo hospitalSetQueryVo){
@@ -112,6 +115,26 @@ public class HospitalSetController {
     @DeleteMapping("batchRemove")
     public Result batchRemove(@RequestBody List<String> idList){
         hospitalSetService.removeByIds(idList);
+        return Result.ok();
+    }
+
+    //医院设置锁定和解锁
+    @PostMapping("lockHosp/{id}/{status}")
+    public Result lockHospitalSet(@PathVariable Long id,
+                                  @PathVariable Integer status){
+        HospitalSet byId = hospitalSetService.getById(id);
+        byId.setStatus(status);
+        hospitalSetService.updateById(byId);
+        return Result.ok();
+    }
+
+    //发送签名密钥
+    @PutMapping("sendKey/{id}")
+    public Result lockHospitalSet(@PathVariable Long id){
+        HospitalSet hospitalSet = hospitalSetService.getById(id);
+        String singKey = hospitalSet.getSignKey();
+        String hoscode = hospitalSet.getHoscode();
+        //TODO
         return Result.ok();
     }
 }
