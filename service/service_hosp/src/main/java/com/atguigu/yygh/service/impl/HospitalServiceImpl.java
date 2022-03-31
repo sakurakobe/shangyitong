@@ -40,4 +40,11 @@ public class HospitalServiceImpl implements HospitalService {
             hospitalRepository.save(hospital);
         }
     }
+
+    //根据医院编号进行查询
+    @Override
+    public Hospital getByHoscode(String hoscode) {
+        Hospital hospital = hospitalRepository.getHospitalByHoscode(hoscode);
+        return hospital;
+    }
 }
