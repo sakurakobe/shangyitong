@@ -1,19 +1,28 @@
 package com.atguigu.yygh.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.atguigu.yygh.cmn.client.DictFeighClient;
 import com.atguigu.yygh.model.hosp.Hospital;
 import com.atguigu.yygh.repository.HospitalRepository;
 import com.atguigu.yygh.service.HospitalService;
+import com.atguigu.yygh.vo.hosp.HospitalQueryVo;
+import com.atguigu.yygh.vo.hosp.HospitalSetQueryVo;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 @Service
 public class HospitalServiceImpl implements HospitalService {
     @Autowired
     private HospitalRepository hospitalRepository;
+
+    @Autowired
+    private DictFeighClient dictFeighClient;
 
     //上传医院接口
     @Override
@@ -46,5 +55,38 @@ public class HospitalServiceImpl implements HospitalService {
     public Hospital getByHoscode(String hoscode) {
         Hospital hospital = hospitalRepository.getHospitalByHoscode(hoscode);
         return hospital;
+    }
+
+    @Override
+    public Page<Hospital> selectHospPage(Integer page, Integer limit, HospitalQueryVo hospitalQueryVo) {
+        //创建pageable对象
+        Pageable pageable = PageRequest.of(page-1,limit);
+        ExampleMatcher matcher = ExampleMatcher.matching()
+                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
+                .withIgnoreCase(true);
+        //对象转换
+        Hospital hospital = new Hospital();
+        BeanUtils.copyProperties(hospitalQueryVo,hospital);
+        //创建
+        Example<Hospital> example = Example.of(hospital,matcher);
+        Page<Hospital> pages = hospitalRepository.findAll(example, pageable);
+        //微服务调用
+  
+        //遍历
+        pages.getContent().stream().forEach(item -> {
+            this.setHospitalHosType(item);
+        });
+        return pages;
+    }
+
+    private Hospital setHospitalHosType(Hospital item) {
+        String hostypeString = dictFeighClient.getName("Hostype", item.getHostype());
+        //查询省市地区
+        String provinceString = dictFeighClient.getName(item.getProvinceCode());
+        String cityString = dictFeighClient.getName(item.getCityCode());
+        String districtString = dictFeighClient.getName(item.getDistrictCode());
+        item.getParam().put("fullAddress",provinceString+cityString+districtString);
+        item.getParam().put("hostypeString",hostypeString);
+        return item;
     }
 }

@@ -9,11 +9,14 @@ import com.atguigu.yygh.common.result.ResultCodeEnum;
 import com.atguigu.yygh.common.util.MD5;
 import com.atguigu.yygh.model.hosp.Department;
 import com.atguigu.yygh.model.hosp.Hospital;
+import com.atguigu.yygh.model.hosp.Schedule;
 import com.atguigu.yygh.service.DepartmentService;
 import com.atguigu.yygh.service.HospitalService;
 import com.atguigu.yygh.service.HospitalSetService;
+import com.atguigu.yygh.service.ScheduleService;
 import com.atguigu.yygh.vo.hosp.DepartmentQueryVo;
 
+import com.atguigu.yygh.vo.hosp.ScheduleQueryVo;
 import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -35,6 +38,58 @@ public class ApiController {
 
     @Autowired
     private DepartmentService departmentService;
+
+    @Autowired
+    private ScheduleService scheduleService;
+
+
+    //上传排班
+    @PostMapping("saveSchedule")
+    public Result saveShedule(HttpServletRequest request){
+        Map<String,String[]> resultMap = request.getParameterMap();
+        Map<String,Object> paramMap = HttpRequestHelper.switchMap(resultMap);
+
+        scheduleService.save(paramMap);
+        return Result.ok();
+    }
+
+    //查询排班
+    @PostMapping("schedule/list")
+    public Result findSchedule(HttpServletRequest request){
+        //获取科室信息
+        Map<String,String[]> resultMap = request.getParameterMap();
+        Map<String,Object> paramMap = HttpRequestHelper.switchMap(resultMap);
+
+        String hoscode = (String) paramMap.get("hoscode");
+        String depcode = (String) paramMap.get("depcode");
+        //当前页
+        int page = StringUtils.isEmpty(paramMap.get("page"))
+                ? 1 : Integer.parseInt((String) paramMap.get("page"));
+        //每页记录数
+        int limit = StringUtils.isEmpty(paramMap.get("limit"))
+                ? 1 : Integer.parseInt((String) paramMap.get("limit"));
+        //TODO 签名校验
+        ScheduleQueryVo scheduleQueryVo = new ScheduleQueryVo();
+        scheduleQueryVo.setHoscode(hoscode);
+        scheduleQueryVo.setDepcode(depcode);
+        Page<Schedule> pageModel =scheduleService.findPageSchedule(page,limit,scheduleQueryVo);
+        return Result.ok(pageModel);
+    }
+
+    //删除排班
+    @PostMapping("schedule/remove")
+    public Result remove(HttpServletRequest request){
+        Map<String,String[]> resultMap = request.getParameterMap();
+        Map<String,Object> paramMap = HttpRequestHelper.switchMap(resultMap);
+
+        //医院编号和科室编号
+        String hoscode = (String) paramMap.get("hoscode");
+        String scheduleId = (String) paramMap.get("hosScheduleId");
+
+        scheduleService.remove(hoscode,scheduleId);
+        return Result.ok();
+
+    }
 
     //删除科室接口
     @PostMapping("department/remove")

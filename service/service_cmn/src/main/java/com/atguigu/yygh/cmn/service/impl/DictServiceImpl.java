@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 
@@ -84,11 +85,33 @@ public class DictServiceImpl extends ServiceImpl<DictMapper, Dict>
         }
     }
 
+
     //判断id下面是否有子节点
     private boolean isChildren(long id){
         QueryWrapper<Dict> wrapper = new QueryWrapper<>();
         wrapper.eq("parent_id",id);
         Integer integer = baseMapper.selectCount(wrapper);
         return integer>0;
+    }
+    //根据dictcode和value查询
+    @Override
+    public String getDictName(String s, String value) {
+        if(StringUtils.isEmpty(s)){
+            QueryWrapper<Dict> wrapper = new QueryWrapper<>();
+            wrapper.eq("value",value);
+            Dict dict = baseMapper.selectOne(wrapper);
+            return dict.getName();
+        }else{
+            QueryWrapper<Dict> wrapper = new QueryWrapper<>();
+            wrapper.eq("dict_code",s);
+            Dict dict = baseMapper.selectOne(wrapper);
+            Long id = dict.getId();
+            //根据id和value值进行查询
+            Dict dict1 = baseMapper.selectOne(new QueryWrapper<Dict>()
+                    .eq("parent_id", id)
+                    .eq("value", value));
+            return dict1.getName();
+        }
+
     }
 }
