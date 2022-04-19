@@ -114,4 +114,20 @@ public class DictServiceImpl extends ServiceImpl<DictMapper, Dict>
         }
 
     }
+
+    @Override
+    public List<Dict> findByDictCode(String dictCode) {
+        Dict dict = this.getDictByDictCode(dictCode);
+        List<Dict> childData = this.findChildData(dict.getId());
+        return childData;
+    }
+
+    private Dict getDictByDictCode(String dictCode){
+        QueryWrapper<Dict> wrapper = new QueryWrapper<>();
+        wrapper.eq("dict_code",dictCode);
+        Dict codeDict = baseMapper.selectOne(wrapper);
+        return codeDict;
+
+
+    }
 }

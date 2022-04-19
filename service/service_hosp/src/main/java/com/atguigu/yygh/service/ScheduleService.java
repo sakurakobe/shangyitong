@@ -12,4 +12,6 @@ public interface ScheduleService {
     Page<Schedule> findPageSchedule(int page, int limit, ScheduleQueryVo scheduleQueryVo);
 
     void remove(String hoscode, String scheduleId);
+
+    Map<String, Object> getRuleSchedule(long page, long limit, String hoscode, String depcode);
 }

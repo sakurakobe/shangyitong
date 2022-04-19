@@ -2,6 +2,7 @@ package com.atguigu.yygh.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.atguigu.yygh.cmn.client.DictFeighClient;
+import com.atguigu.yygh.common.result.Result;
 import com.atguigu.yygh.model.hosp.Hospital;
 import com.atguigu.yygh.repository.HospitalRepository;
 import com.atguigu.yygh.service.HospitalService;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -77,6 +79,28 @@ public class HospitalServiceImpl implements HospitalService {
             this.setHospitalHosType(item);
         });
         return pages;
+    }
+
+    @Override
+    public void updateStatus(String id, Integer status) {
+        //根据id查询
+        Hospital hospital = hospitalRepository.findById(id).get();
+        //设置修改的值
+        hospital.setStatus(status);
+        hospital.setUpdateTime(new Date());
+        hospitalRepository.save(hospital);
+    }
+
+    @Override
+    public Map<String,Object>getHospById(String id) {
+        Map<String,Object> result = new HashMap<>();
+        Hospital hospital = hospitalRepository.findById(id).get();
+        Hospital hospital1 = this.setHospitalHosType(hospital);
+        result.put("hospital",hospital1);
+        result.put("bookingRule",hospital1.getBookingRule());
+        hospital1.setBookingRule(null);
+        return result;
+
     }
 
     private Hospital setHospitalHosType(Hospital item) {
