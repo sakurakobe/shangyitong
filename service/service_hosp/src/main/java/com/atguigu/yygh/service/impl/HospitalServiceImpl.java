@@ -103,6 +103,15 @@ public class HospitalServiceImpl implements HospitalService {
 
     }
 
+    @Override
+    public String getHospName(String hoscode) {
+        Hospital hospital = hospitalRepository.getHospitalByHoscode(hoscode);
+        if (hospital != null){
+            return hospital.getHosname();
+        }
+        return null;
+    }
+
     private Hospital setHospitalHosType(Hospital item) {
         String hostypeString = dictFeighClient.getName("Hostype", item.getHostype());
         //查询省市地区

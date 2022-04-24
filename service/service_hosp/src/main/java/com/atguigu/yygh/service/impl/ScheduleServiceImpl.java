@@ -4,9 +4,12 @@ import com.alibaba.fastjson.JSONObject;
 import com.atguigu.yygh.model.hosp.Department;
 import com.atguigu.yygh.model.hosp.Schedule;
 import com.atguigu.yygh.repository.ScheduleRepository;
+import com.atguigu.yygh.service.HospitalService;
 import com.atguigu.yygh.service.ScheduleService;
 import com.atguigu.yygh.vo.hosp.BookingScheduleRuleVo;
 import com.atguigu.yygh.vo.hosp.ScheduleQueryVo;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeConstants;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
@@ -17,6 +20,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -29,6 +33,9 @@ public class ScheduleServiceImpl implements ScheduleService {
     //分组 聚合更加方便
     @Autowired
     private MongoTemplate mongoTemplate;
+
+    @Autowired
+    private HospitalService hospitalService;
 
     @Override
     public void save(Map<String, Object> paramMap) {
@@ -98,7 +105,66 @@ public class ScheduleServiceImpl implements ScheduleService {
         );
         AggregationResults<BookingScheduleRuleVo> aggResult = mongoTemplate.aggregate(agg, Schedule.class, BookingScheduleRuleVo.class);
         List<BookingScheduleRuleVo> mappedResults = aggResult.getMappedResults();
-        
-        return null;
+
+        //分组查询之后总的记录数
+        Aggregation totalAgg = Aggregation.newAggregation(
+            Aggregation.match(criteria),
+            Aggregation.group("workDate")
+        );
+        AggregationResults<BookingScheduleRuleVo> totalAggResult =
+                mongoTemplate.aggregate(totalAgg, Schedule.class, BookingScheduleRuleVo.class);
+        int total = totalAggResult.getMappedResults().size();
+
+        //日期对应的星期
+        for(BookingScheduleRuleVo bookingScheduleRuleVo: mappedResults){
+            Date workDate = bookingScheduleRuleVo.getWorkDate();
+            String dayOfWeek = this.getDayOfWeek(new DateTime(workDate));
+            bookingScheduleRuleVo.setDayOfWeek(dayOfWeek);
+        }
+        //设置最终的数据进行返回
+        Map<String,Object> result = new HashMap<>();
+        result.put("bookingScheduleRuleList",mappedResults);
+        result.put("total",total);
+        //获取医院名称
+        String hosname = hospitalService.getHospName(hoscode);
+        Map<String,String>  baseMap = new HashMap<>();
+        baseMap.put("hosname",hosname);
+        result.put("baseMap",baseMap);
+        return result;
     }
+
+    /**
+     * 根据日期获取周几数据
+     * @param dateTime
+     * @return
+     */
+    private String getDayOfWeek(DateTime dateTime) {
+        String dayOfWeek = "";
+        switch (dateTime.getDayOfWeek()) {
+            case DateTimeConstants.SUNDAY:
+                dayOfWeek = "周日";
+                break;
+            case DateTimeConstants.MONDAY:
+                dayOfWeek = "周一";
+                break;
+            case DateTimeConstants.TUESDAY:
+                dayOfWeek = "周二";
+                break;
+            case DateTimeConstants.WEDNESDAY:
+                dayOfWeek = "周三";
+                break;
+            case DateTimeConstants.THURSDAY:
+                dayOfWeek = "周四";
+                break;
+            case DateTimeConstants.FRIDAY:
+                dayOfWeek = "周五";
+                break;
+            case DateTimeConstants.SATURDAY:
+                dayOfWeek = "周六";
+            default:
+                break;
+        }
+        return dayOfWeek;
+    }
+
 }
