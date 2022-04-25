@@ -17,4 +17,6 @@ public interface DepartmentService {
     void remove(String hoscode, String depcode);
 
     List<DepartmentVo> findDepTree(String hoscode);
+    //科室名称
+    String getDepName(String hoscode, String depcode);
 }

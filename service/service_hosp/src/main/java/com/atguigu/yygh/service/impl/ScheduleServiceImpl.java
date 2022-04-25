@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.atguigu.yygh.model.hosp.Department;
 import com.atguigu.yygh.model.hosp.Schedule;
 import com.atguigu.yygh.repository.ScheduleRepository;
+import com.atguigu.yygh.service.DepartmentService;
 import com.atguigu.yygh.service.HospitalService;
 import com.atguigu.yygh.service.ScheduleService;
 import com.atguigu.yygh.vo.hosp.BookingScheduleRuleVo;
@@ -36,6 +37,9 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Autowired
     private HospitalService hospitalService;
+
+    @Autowired
+    private DepartmentService departmentService;
 
     @Override
     public void save(Map<String, Object> paramMap) {
@@ -131,6 +135,27 @@ public class ScheduleServiceImpl implements ScheduleService {
         baseMap.put("hosname",hosname);
         result.put("baseMap",baseMap);
         return result;
+    }
+    //查询排班的具体信息
+    @Override
+    public List<Schedule> getDetailSchedule(String hoscode, String depcode, String workDate) {
+        //查询mongoDB得到list集合
+        List<Schedule> list =
+                scheduleRepository.findScheduleByHoscodeAndDepcodeAndWorkDate(hoscode,depcode,new DateTime(workDate).toDate());
+        //遍历设置其他值 stream流的方式
+        list.stream().forEach(item ->{
+            this.packageSchedule(item);
+        });
+        return list;
+    }
+    //封装排班其他详情值
+    private void packageSchedule(Schedule item) {
+        //设置医院名称
+        item.getParam().put("hosname",hospitalService.getHospName(item.getHoscode()));
+        //科室名称
+        item.getParam().put("depname",departmentService.getDepName(item.getHoscode(),item.getDepcode()));
+        //设置日期对应的星期值
+        item.getParam().put("dayofWeek",this.getDayOfWeek(new DateTime(item.getWorkDate())));
     }
 
     /**
