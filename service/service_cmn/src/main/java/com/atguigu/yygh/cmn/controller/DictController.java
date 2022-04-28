@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/admin/cmn/dict")
-@CrossOrigin
+
 public class DictController {
 
     @Autowired
@@ -50,7 +50,7 @@ public class DictController {
 
     //根据dictCode获取下级节点
     @ApiOperation(value = "根据dictCode获取下级节点")
-    @GetMapping("findByDictCode/{DictCode}")
+    @GetMapping("findByDictCode/{dictCode}")
     public Result findByDictCode(@PathVariable String dictCode){
         List<Dict> list = dictService.findByDictCode(dictCode);
         return Result.ok(list);

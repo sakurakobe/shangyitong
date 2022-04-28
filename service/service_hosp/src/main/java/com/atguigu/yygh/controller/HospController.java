@@ -13,7 +13,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/admin/hosp/hospital")
-@CrossOrigin
+
 public class HospController {
     @Autowired
     private HospitalService hospitalService;
