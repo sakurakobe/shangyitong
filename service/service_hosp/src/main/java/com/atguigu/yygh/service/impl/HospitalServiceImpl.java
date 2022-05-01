@@ -112,6 +112,21 @@ public class HospitalServiceImpl implements HospitalService {
         return null;
     }
 
+    @Override
+    public List<Hospital> findByHosname(String hosname) {
+        return hospitalRepository.findHospitalByHosnameLike(hosname);
+    }
+
+    @Override
+    public Map<String, Object> item(String hoscode) {
+        Map<String,Object> result = new HashMap<>();
+        Hospital hospital = this.setHospitalHosType(this.getByHoscode(hoscode));
+        result.put("hospital",hospital);
+        result.put("bookingRule",hospital.getBookingRule());
+        hospital.setBookingRule(null);
+        return null;
+    }
+
     private Hospital setHospitalHosType(Hospital item) {
         String hostypeString = dictFeighClient.getName("Hostype", item.getHostype());
         //查询省市地区
