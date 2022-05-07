@@ -1,6 +1,7 @@
 package com.atguigu.yygh.user.service.impl;
 
 import com.atguigu.yygh.common.exception.YyghException;
+import com.atguigu.yygh.common.helper.JwtHelper;
 import com.atguigu.yygh.common.result.ResultCodeEnum;
 import com.atguigu.yygh.model.user.UserInfo;
 import com.atguigu.yygh.user.mapper.UserInfoMapper;
@@ -55,8 +56,9 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo>  
             name = userInfo.getPhone();
         }
         map.put("name",name);
-        //todo token的生成 JWT
-        map.put("token","");
-        return null;
+        //token的生成 JWT
+        String token = JwtHelper.createToken(userInfo.getId(), name);
+        map.put("token",token);
+        return map;
     }
 }
