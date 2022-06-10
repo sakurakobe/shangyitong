@@ -59,7 +59,7 @@ public class DictController {
     //根据value进行查询
     @GetMapping("getName/{value}")
     public String getName(@PathVariable String value){
-        String dictName = dictService.getDictName("",value);
+        String dictName = dictService.getDictName("value",value);
         return dictName;
     }
 
